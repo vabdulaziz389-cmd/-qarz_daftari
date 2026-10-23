@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f4c3a">
+<title>Zapravka qarz daftari</title>
+<style>
+:root{--bg:#f3f5f2;--card:#fff;--ink:#14231c;--mut:#5d6b64;--line:#dbe2dd;--g:#0f4c3a;--y:#f2b705;--r:#c0392b;--ok:#1e8a55}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1612;--card:#17221c;--ink:#e8f0eb;--mut:#93a39a;--line:#2a3a31;--g:#2f9d74;--y:#f2b705;--r:#ef6a5b;--ok:#4cc58b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:90px}
+header{background:#0f4c3a;color:#fff;padding:14px 16px;border-bottom:5px solid var(--y)}
+header h1{margin:0;font-size:20px}
+main{max-width:720px;margin:0 auto;padding:12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px}
+.st b{display:block;font-size:20px}
+.st span{color:var(--mut);font-size:13px}
+.st.big{grid-column:1/-1;border-left:6px solid var(--y)}
+.st.big b{font-size:28px}
+.tabs{display:flex;gap:6px;margin:14px 0 8px}
+.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font-size:15px}
+.tabs button.on{background:var(--g);color:#fff;border-color:var(--g)}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}
+.d{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0}
+.d.over{border-left:6px solid var(--r)}
+.d.done{opacity:.8;border-left:6px solid var(--ok)}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.nm{font-weight:700;font-size:17px}
+.plate{display:inline-block;border:2px solid var(--ink);border-radius:5px;padding:0 6px;font-weight:700;letter-spacing:1px;font-size:14px}
+.rem{font-weight:800;font-size:20px;color:var(--r)}
+.done .rem{color:var(--ok)}
+.sm{color:var(--mut);font-size:13px}
+.bar{height:7px;background:var(--line);border-radius:4px;margin:8px 0;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+button{font:inherit;cursor:pointer}
+.b{padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.b.p{background:var(--g);color:#fff;border-color:var(--g)}
+.b.x{color:var(--r)}
+a.b{text-decoration:none}
+.fab{position:fixed;right:16px;bottom:16px;background:var(--y);color:#14231c;border:0;border-radius:30px;padding:15px 22px;font-weight:700;font-size:17px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+dialog{border:0;border-radius:14px;padding:16px;width:min(94vw,460px);background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+td:first-child,th:first-child{text-align:left}
+details{margin-top:14px}
+summary{font-weight:700;padding:8px 0}
+.empty{text-align:center;color:var(--mut);padding:30px 0}
+</style>
+</head>
+<body>
+<header><h1>⛽ Zapravka qarz daftari</h1></header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="tabs">
+    <button data-t="open" class="on">Qarzdorlar</button>
+    <button data-t="over">Muddati o‘tgan</button>
+    <button data-t="done">Yopilgan</button>
+  </div>
+  <input id="q" type="search" placeholder="Ism, telefon yoki mashina raqami bo‘yicha qidirish">
+  <div id="list"></div>
+
+  <details>
+    <summary>Kunlar bo‘yicha hisobot</summary>
+    <div id="days"></div>
+  </details>
+  <details>
+    <summary>Zaxira nusxa</summary>
+    <p class="sm">Ma’lumotlar shu telefon/brauzerda saqlanadi. Vaqti-vaqti bilan zaxira nusxa oling.</p>
+    <div class="btns">
+      <button class="b" id="exp">Yuklab olish</button>
+      <label class="b" style="margin:0;color:var(--ink)">Qayta yuklash<input id="imp" type="file" accept=".json" hidden></label>
+    </div>
+  </details>
+</main>
+<button class="fab" id="add">+ Yangi qarz</button>
+
+<dialog id="dAdd"><form id="fAdd" method="dialog">
+  <h3 style="margin:0">Yangi qarz</h3>
+  <label>Ism familiya *</label><input name="name" required>
+  <label>Telefon raqami</label><input name="phone" type="tel" placeholder="+998 90 123 45 67">
+  <div class="g2">
+    <div><label>Mashina raqami</label><input name="plate" placeholder="01 A 123 AA" style="text-transform:uppercase"></div>
+    <div><label>Mashina turi</label><input name="car" placeholder="Nexia, Gentra..."></div>
+  </div>
+  <div class="g2">
+    <div><label>Olingan summa (so‘m) *</label><input name="amount" type="number" inputmode="numeric" min="1" required></div>
+    <div><label>Hozir bergani</label><input name="paid" type="number" inputmode="numeric" min="0" value="0"></div>
+  </div>
+  <div class="g2">
+    <div><label>Olingan sana</label><input name="date" type="date" required></div>
+    <div><label>Qaytarish sanasi</label><input name="due" type="date"></div>
+  </div>
+  <label>Izoh (benzin turi, litr...)</label><input name="note" placeholder="AI-92, 30 litr">
+  <div class="btns" style="margin-top:14px"><button class="b p" value="ok" style="flex:1">Saqlash</button><button class="b" value="x" formnovalidate>Bekor</button></div>
+</form></dialog>
+
+<dialog id="dPay"><form id="fPay" method="dialog">
+  <h3 style="margin:0" id="pTitle"></h3>
+  <p class="sm" id="pInfo"></p>
+  <label>To‘lov summasi (so‘m)</label><input name="sum" type="number" inputmode="numeric" min="1" required>
+  <label>Sana</label><input name="date" type="date" required>
+  <div id="pHist" class="sm" style="margin-top:10px"></div>
+  <div class="btns" style="margin-top:14px"><button class="b p" value="ok" style="flex:1">To‘lovni qo‘shish</button><button class="b" value="x" formnovalidate>Yopish</button></div>
+</form></dialog>
+
+<script>
+const KEY="zapravka_qarz_v1";
+let D=[];try{D=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){D=[]}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(D))}catch(e){alert("Saqlab bo‘lmadi: xotira to‘la yoki bloklangan")}};
+const $=s=>document.querySelector(s);
+const today=()=>{const t=new Date();return new Date(t-t.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const fmt=n=>Math.round(n).toLocaleString("ru-RU")+" so‘m";
+const paid=d=>d.pay.reduce((s,p)=>s+p.sum,0);
+const rem=d=>d.amount-paid(d);
+const esc=s=>String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+let tab="open",payId=null;
+
+function render(){
+  const t=today();
+  const open=D.filter(d=>rem(d)>0);
+  const total=open.reduce((s,d)=>s+rem(d),0);
+  const givenToday=D.filter(d=>d.date===t).reduce((s,d)=>s+d.amount,0);
+  const backToday=D.flatMap(d=>d.pay).filter(p=>p.date===t).reduce((s,p)=>s+p.sum,0);
+  const overdue=open.filter(d=>d.due&&d.due<t);
+  $("#stats").innerHTML=`
+   <div class="st big"><span>Jami qolgan qarz (${open.length} kishi)</span><b>${fmt(total)}</b></div>
+   <div class="st"><span>Bugun berilgan qarz</span><b>${fmt(givenToday)}</b></div>
+   <div class="st"><span>Bugun qaytgan pul</span><b>${fmt(backToday)}</b></div>
+   <div class="st"><span>Muddati o‘tgan</span><b>${overdue.length} ta</b></div>
+   <div class="st"><span>Muddati o‘tgan summa</span><b>${fmt(overdue.reduce((s,d)=>s+rem(d),0))}</b></div>`;
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+  const q=$("#q").value.trim().toLowerCase();
+  let L=tab==="done"?D.filter(d=>rem(d)<=0):tab==="over"?overdue:open;
+  if(q)L=L.filter(d=>[d.name,d.phone,d.plate,d.car].join(" ").toLowerCase().includes(q));
+  L=L.slice().sort((a,b)=>tab==="done"?b.date.localeCompare(a.date):(a.due||"9999").localeCompare(b.due||"9999"));
+  $("#list").innerHTML=L.length?L.map(card).join(""):`<div class="empty">${tab==="done"?"Yopilgan qarz yo‘q":"Qarz topilmadi"}</div>`;
+  days();
+}
+function card(d){
+  const r=rem(d),p=paid(d),t=today(),od=r>0&&d.due&&d.due<t;
+  const pct=Math.min(100,p/d.amount*100);
+  const tel=d.phone?d.phone.replace(/[^\d+]/g,""):"";
+  return `<div class="d ${r<=0?"done":od?"over":""}">
+   <div class="row"><span class="nm">${esc(d.name)}</span><span class="rem">${r<=0?"✓ Yopilgan":fmt(r)}</span></div>
+   <div class="sm">${d.plate?`<span class="plate">${esc(d.plate.toUpperCase())}</span> `:""}${esc(d.car)}${d.phone?` · ${esc(d.phone)}`:""}</div>
+   <div class="bar"><i style="width:${pct}%"></i></div>
+   <div class="sm">Olgan: <b>${fmt(d.amount)}</b> (${d.date}) · Bergan: <b>${fmt(p)}</b></div>
+   ${d.due?`<div class="sm" style="${od?"color:var(--r);font-weight:700":""}">Qaytarish: ${d.due}${od?" — muddati o‘tgan!":""}</div>`:""}
+   ${d.note?`<div class="sm">${esc(d.note)}</div>`:""}
+   <div class="btns">
+    ${r>0?`<button class="b p" onclick="openPay('${d.id}')">To‘lov qo‘shish</button><button class="b" onclick="payAll('${d.id}')">To‘liq to‘landi</button>`:`<button class="b" onclick="openPay('${d.id}')">Tarix</button>`}
+    ${tel?`<a class="b" href="tel:${tel}">📞 Qo‘ng‘iroq</a>`:""}
+    <button class="b x" onclick="del('${d.id}')">O‘chirish</button>
+   </div></div>`;
+}
+function days(){
+  const m={};
+  D.forEach(d=>{(m[d.date]??={n:0,g:0,b:0}).n++;m[d.date].g+=d.amount;
+    d.pay.forEach(p=>{(m[p.date]??={n:0,g:0,b:0}).b+=p.sum})});
+  const ks=Object.keys(m).sort().reverse().slice(0,31);
+  $("#days").innerHTML=ks.length?`<table><tr><th>Sana</th><th>Soni</th><th>Berilgan</th><th>Qaytgan</th></tr>`+
+   ks.map(k=>`<tr><td>${k}</td><td>${m[k].n}</td><td>${fmt(m[k].g)}</td><td>${fmt(m[k].b)}</td></tr>`).join("")+`</table>`:`<div class="empty">Hozircha ma’lumot yo‘q</div>`;
+}
+function openPay(id){
+  payId=id;const d=D.find(x=>x.id===id);
+  $("#pTitle").textContent=d.name;
+  $("#pInfo").textContent=`Qolgan: ${fmt(Math.max(0,rem(d)))} (jami ${fmt(d.amount)})`;
+  const f=$("#fPay");f.sum.value="";f.date.value=today();f.sum.max=Math.max(1,rem(d));
+  $("#pHist").innerHTML=d.pay.length?"To‘lovlar:<br>"+d.pay.map(p=>`${p.date} — ${fmt(p.sum)}`).join("<br>"):"Hali to‘lov yo‘q";
+  $("#dPay").showModal();
+}
+function payAll(id){
+  const d=D.find(x=>x.id===id);
+  if(confirm(`${d.name}: ${fmt(rem(d))} to‘liq to‘landimi? Qarz yopiladi.`)){d.pay.push({date:today(),sum:rem(d)});save();render()}
+}
+function del(id){
+  const d=D.find(x=>x.id===id);
+  if(confirm(`${d.name} yozuvini butunlay o‘chirasizmi?`)){D=D.filter(x=>x.id!==id);save();render()}
+}
+$("#add").onclick=()=>{const f=$("#fAdd");f.reset();f.date.value=today();$("#dAdd").showModal()};
+$("#fAdd").onsubmit=e=>{
+  if(e.submitter&&e.submitter.value!=="ok")return;
+  const f=e.target,amount=+f.amount.value,pd=Math.min(+f.paid.value||0,amount);
+  D.push({id:uid(),name:f.name.value.trim(),phone:f.phone.value.trim(),plate:f.plate.value.trim(),car:f.car.value.trim(),
+    amount,date:f.date.value,due:f.due.value,note:f.note.value.trim(),pay:pd>0?[{date:f.date.value,sum:pd}]:[]});
+  save();tab="open";render();
+};
+$("#fPay").onsubmit=e=>{
+  if(e.submitter&&e.submitter.value!=="ok")return;
+  const f=e.target,d=D.find(x=>x.id===payId),s=Math.min(+f.sum.value,rem(d));
+  if(s>0){d.pay.push({date:f.date.value,sum:s});save();render()}
+};
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;render()});
+$("#q").oninput=render;
+$("#exp").onclick=()=>{
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(D,null,1)],{type:"application/json"}));
+  a.download=`qarz-zaxira-${today()}.json`;a.click();
+};
+$("#imp").onchange=e=>{
+  const r=new FileReader();
+  r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;
+    if(confirm("Hozirgi ma’lumotlar almashtiriladi. Davom etasizmi?")){D=x;save();render()}}catch(_){alert("Fayl noto‘g‘ri")}};
+  r.readAsText(e.target.files[0]);
+};
+render();
+</script>
+</body>
+</html>
